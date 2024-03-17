@@ -5,7 +5,7 @@ public class Cipher {
         return feistel(input, key, 1, false);
     }
 
-    public static int decrpyt(int input, int key) {
+    public static int decrypt(int input, int key) {
         return feistel(input, key, MAX_ROUND, true);
     }
 
@@ -128,7 +128,7 @@ public class Cipher {
 
         // Decipher each block with feistel (decrypt)
         for (int i = 0; i < blockCount; i++) {
-            decipherBlocks[i] = decrpyt(decipherBlocks[i], key);
+            decipherBlocks[i] = decrypt(decipherBlocks[i], key);
         }
 
         // Print Cipher Blocks
