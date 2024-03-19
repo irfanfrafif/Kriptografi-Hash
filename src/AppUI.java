@@ -8,10 +8,12 @@ import javax.swing.JRadioButton;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.SwingUtilities;
+import javax.swing.ButtonGroup;
 
-import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagLayout;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 
 public class AppUI extends JFrame {
     private JTextArea textField1;
@@ -38,6 +40,8 @@ public class AppUI extends JFrame {
         JPanel inputPanel = new JPanel();
         inputPanel.setLayout(new BoxLayout(inputPanel, BoxLayout.Y_AXIS));
         textField1 = new JTextArea(10, 15);
+        textField1.setLineWrap(true);
+        textField1.setAlignmentX(LEFT_ALIGNMENT);
         JLabel label = new JLabel("Text to encrypt/decrypt:");
         inputPanel.add(label);
         inputPanel.add(textField1);
@@ -61,7 +65,9 @@ public class AppUI extends JFrame {
         JPanel outputPanel = new JPanel();
         outputPanel.setLayout(new BoxLayout(outputPanel, BoxLayout.Y_AXIS));
         textField2 = new JTextArea(10, 15);
-        textField2.setEditable(false); // Makes it non-editable; remove if not desired
+        textField2.setLineWrap(true);
+        textField2.setEditable(false);
+        textField2.setAlignmentX(LEFT_ALIGNMENT);
         JLabel label2 = new JLabel("Result:");
         outputPanel.add(label2);
         outputPanel.add(textField2);
@@ -81,8 +87,33 @@ public class AppUI extends JFrame {
         JTextField keyField = new JTextField(10);
         JRadioButton hexButton = new JRadioButton("Hex");
         JRadioButton asciiButton = new JRadioButton("ASCII");
+        asciiButton.setSelected(true);
+
+        ButtonGroup buttonGroup = new ButtonGroup(); 
+        buttonGroup.add(hexButton);
+        buttonGroup.add(asciiButton);
         
-        hexButton.setSelected(true);
+        encryptButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                String text = textField1.getText();
+                String key = keyField.getText();
+                boolean isHex = hexButton.isSelected();
+                String result = Cipher.cipherText(text, key, isHex);
+                textField2.setText(result);
+            }
+        });
+
+        decryptButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                String text = textField1.getText();
+                String key = keyField.getText();
+                boolean isHex = hexButton.isSelected();
+                String result = Cipher.decipherText(text, key, isHex);
+                textField2.setText(result);
+            }
+        
+        });
+        
         inputKeyPanel.add(keyField);
         inputKeyPanel.add(hexButton);
         inputKeyPanel.add(asciiButton);
