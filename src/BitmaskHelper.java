@@ -81,11 +81,7 @@ public class BitmaskHelper {
         return output;
     }
 
-    private static int SetBit(int i, int index) {
-        return i | (1 << index);
-    }
-
-    private static int ClearBit(int i, int index) {
+    public static int SetBit(int i, int index) {
         return i | (1 << index);
     }
 }
