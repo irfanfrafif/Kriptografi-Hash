@@ -32,11 +32,16 @@ public class AppUI extends JFrame {
     }
 
     private void createView() {
+        // Create BoxLayout for content panel (biggest panel that includes all other panels)
         JPanel contentPanel = new JPanel();
         contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
         getContentPane().add(contentPanel);
         
-        JPanel formPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
+        // Create form panel for input panel, button panel, and output panel 
+        // (there is form panel due to alignment issues with BoxLayout)
+        // Flow Layout for horizontal alignment
+        // BoxLayout for vertical alignment
+        JPanel formPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
         JPanel inputPanel = new JPanel();
         inputPanel.setLayout(new BoxLayout(inputPanel, BoxLayout.Y_AXIS));
         textField1 = new JTextArea(10, 15);
@@ -47,12 +52,11 @@ public class AppUI extends JFrame {
         inputPanel.add(textField1);
         formPanel.add(inputPanel);
 
+        // Create button panel
         JPanel buttonPanel = new JPanel();
         buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
         encryptButton = new JButton("Encrypt");
         decryptButton = new JButton("Decrypt");
-
-        // Adjust button sizes and alignment
         encryptButton.setAlignmentX(JPanel.CENTER_ALIGNMENT);
         decryptButton.setAlignmentX(JPanel.CENTER_ALIGNMENT);
 
@@ -62,6 +66,7 @@ public class AppUI extends JFrame {
         formPanel.add(buttonPanel);
 
 
+        // Create output panel
         JPanel outputPanel = new JPanel();
         outputPanel.setLayout(new BoxLayout(outputPanel, BoxLayout.Y_AXIS));
         textField2 = new JTextArea(10, 15);
@@ -75,7 +80,9 @@ public class AppUI extends JFrame {
 
         contentPanel.add(formPanel);
 
-
+        // Create key panel
+        // This panel is separate from the form panel because it has a different layout
+        // FlowLayout to simply make gap between components and with the form panel
         JPanel keyPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
         getContentPane().add(keyPanel);
         JPanel keyFormPanel = new JPanel();
@@ -93,6 +100,7 @@ public class AppUI extends JFrame {
         buttonGroup.add(hexButton);
         buttonGroup.add(asciiButton);
         
+        // Add action listeners to buttons
         encryptButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 String text = textField1.getText();
