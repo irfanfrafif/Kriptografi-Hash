@@ -1,11 +1,11 @@
 public class Cipher {
     static int MAX_ROUND = 16;
 
-    private static int encrypt(int input, int key) {
+    static int encrypt(int input, int key) {
         return feistel(input, key, 1, false);
     }
 
-    private static int decrpyt(int input, int key) {
+    static int decrpyt(int input, int key) {
         return feistel(input, key, MAX_ROUND, true);
     }
 
