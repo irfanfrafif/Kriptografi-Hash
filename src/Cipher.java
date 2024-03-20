@@ -19,10 +19,13 @@ public class Cipher {
         int f1 = fMethod(right, subkey);
         left = left ^ f1;
 
+        
+        
         // If Decrypting and there are still more rounds
         if (isDecrypt) {
             if (round > 1) {
                 output = (right << 16) | left;
+                AppUI.progressArea.append("Round " + round + " - " + Integer.toHexString(output) + "\n");
                 return feistel(output, key, --round, true);
             }
         }
@@ -30,11 +33,13 @@ public class Cipher {
         else {
             if (round < MAX_ROUND) {
                 output = (right << 16) | left;
+                AppUI.progressArea.append("Round " + round + " - " + Integer.toHexString(output) + "\n");
                 return feistel(output, key, ++round, false);
             }
         }
         // If there are no more rounds
         output = (left << 16) | right;
+        AppUI.progressArea.append("Round " + round + " - " + Integer.toHexString(output) + "\n");
         return output;
     }
 

@@ -5,12 +5,14 @@ import javax.swing.JTextField;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.SwingUtilities;
 import javax.swing.ButtonGroup;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionListener;
@@ -23,13 +25,14 @@ public class AppUI extends JFrame {
     private JButton decryptButton;
     private JPanel contentPanel;
     private JPanel errorPanel;
+    public static JTextArea progressArea;
 
     public AppUI() {
         getContentPane().setLayout(new GridBagLayout());
         createView();
         setTitle("Cipher App");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setSize(800, 600);
+        setSize(1000, 800);
         setLocationRelativeTo(null);
         setResizable(true);
     }
@@ -59,7 +62,10 @@ public class AppUI extends JFrame {
         // panels)
         contentPanel = new JPanel();
         contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
-        getContentPane().add(contentPanel);
+        JScrollPane scrollPane = new JScrollPane(contentPanel);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        getContentPane().add(scrollPane);
 
         // Create form panel for input panel, button panel, and output panel
         // (there is form panel due to alignment issues with BoxLayout)
@@ -131,15 +137,34 @@ public class AppUI extends JFrame {
 
         contentPanel.add(keyPanel);
 
+        progressArea = new JTextArea(10, 15);
+        progressArea.setLineWrap(true);
+        progressArea.append("Logs: \n");
+
+        contentPanel.add(progressArea);
+
         // Add action listeners to buttons
         encryptButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 try {
+                    if(progressArea != null) {
+                        progressArea.revalidate();
+                        progressArea.repaint();
+                        progressArea.setText("Logs: \n");
+                    }
+                    else {
+                        progressArea = new JTextArea(10, 15);
+                        progressArea.setLineWrap(true);
+                        progressArea.append("Logs: \n");
+                        contentPanel.add(progressArea);
+                    }
+
                     String text = textField1.getText();
                     String key = keyField.getText();
                     boolean isHex = hexButton.isSelected();
                     String result = Cipher.cipherText(text, key, isHex);
                     textField2.setText(result);
+
 
                     if (errorPanel != null) {
                         contentPanel.remove(errorPanel);
@@ -162,6 +187,18 @@ public class AppUI extends JFrame {
         decryptButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 try {
+                    if(progressArea != null) {
+                        progressArea.revalidate();
+                        progressArea.repaint();
+                        progressArea.setText("Logs: \n");
+                    }
+                    else {
+                        progressArea = new JTextArea(10, 15);
+                        progressArea.setLineWrap(true);
+                        progressArea.append("Logs: \n");
+                        contentPanel.add(progressArea);
+                    }
+
                     String text = textField1.getText();
                     String key = keyField.getText();
                     boolean isHex = hexButton.isSelected();
