@@ -10,6 +10,7 @@ import javax.swing.BoxLayout;
 import javax.swing.SwingUtilities;
 import javax.swing.ButtonGroup;
 
+import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionListener;
@@ -20,24 +21,47 @@ public class AppUI extends JFrame {
     private JTextArea textField2;
     private JButton encryptButton;
     private JButton decryptButton;
+    private JPanel contentPanel;
+    private JPanel errorPanel;
 
     public AppUI() {
         getContentPane().setLayout(new GridBagLayout());
         createView();
         setTitle("Cipher App");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setSize(800,600);
+        setSize(800, 600);
         setLocationRelativeTo(null);
         setResizable(true);
     }
 
+    private void errorFieldHandler(String message) {
+        // Create error message panel
+        errorPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 5));
+        errorPanel.setLayout(new BoxLayout(errorPanel, BoxLayout.Y_AXIS));
+
+        JLabel errorLabel = new JLabel("Error:");
+        errorLabel.setAlignmentX(CENTER_ALIGNMENT);
+
+        JTextField errorField = new JTextField(10);
+        errorField.setEditable(false);
+        errorField.setHorizontalAlignment(JTextField.CENTER);
+        errorField.setForeground(Color.RED);
+        errorPanel.add(errorLabel);
+        errorPanel.add(errorField);
+        contentPanel.add(errorPanel);
+        errorField.setText(message);
+        contentPanel.revalidate();
+        contentPanel.repaint();
+    }
+
     private void createView() {
-        // Create BoxLayout for content panel (biggest panel that includes all other panels)
-        JPanel contentPanel = new JPanel();
+        // Create BoxLayout for content panel (biggest panel that includes all other
+        // panels)
+        contentPanel = new JPanel();
         contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
         getContentPane().add(contentPanel);
-        
-        // Create form panel for input panel, button panel, and output panel 
+
+        // Create form panel for input panel, button panel, and output panel
         // (there is form panel due to alignment issues with BoxLayout)
         // Flow Layout for horizontal alignment
         // BoxLayout for vertical alignment
@@ -64,7 +88,6 @@ public class AppUI extends JFrame {
         buttonPanel.add(Box.createVerticalStrut(10));
         buttonPanel.add(decryptButton);
         formPanel.add(buttonPanel);
-
 
         // Create output panel
         JPanel outputPanel = new JPanel();
@@ -96,32 +119,10 @@ public class AppUI extends JFrame {
         JRadioButton asciiButton = new JRadioButton("ASCII");
         asciiButton.setSelected(true);
 
-        ButtonGroup buttonGroup = new ButtonGroup(); 
+        ButtonGroup buttonGroup = new ButtonGroup();
         buttonGroup.add(hexButton);
         buttonGroup.add(asciiButton);
-        
-        // Add action listeners to buttons
-        encryptButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                String text = textField1.getText();
-                String key = keyField.getText();
-                boolean isHex = hexButton.isSelected();
-                String result = Cipher.cipherText(text, key, isHex);
-                textField2.setText(result);
-            }
-        });
 
-        decryptButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                String text = textField1.getText();
-                String key = keyField.getText();
-                boolean isHex = hexButton.isSelected();
-                String result = Cipher.decipherText(text, key, isHex);
-                textField2.setText(result);
-            }
-        
-        });
-        
         inputKeyPanel.add(keyField);
         inputKeyPanel.add(hexButton);
         inputKeyPanel.add(asciiButton);
@@ -129,10 +130,67 @@ public class AppUI extends JFrame {
         keyPanel.add(keyFormPanel);
 
         contentPanel.add(keyPanel);
+
+        // Add action listeners to buttons
+        encryptButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    String text = textField1.getText();
+                    String key = keyField.getText();
+                    boolean isHex = hexButton.isSelected();
+                    String result = Cipher.cipherText(text, key, isHex);
+                    textField2.setText(result);
+
+                    if (errorPanel != null) {
+                        contentPanel.remove(errorPanel);
+                        contentPanel.revalidate();
+                        contentPanel.repaint();
+                        errorPanel = null;
+                    }
+                } catch (Exception ex) {
+                    if (errorPanel != null) {
+                        contentPanel.remove(errorPanel);
+                        contentPanel.revalidate();
+                        contentPanel.repaint();
+                        errorPanel = null;
+                    }
+                    errorFieldHandler(ex.getMessage());
+                }
+            }
+        });
+
+        decryptButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    String text = textField1.getText();
+                    String key = keyField.getText();
+                    boolean isHex = hexButton.isSelected();
+                    String result = Cipher.decipherText(text, key, isHex);
+                    textField2.setText(result);
+
+                    if (errorPanel != null) {
+                        contentPanel.remove(errorPanel);
+                        contentPanel.revalidate();
+                        contentPanel.repaint();
+                        errorPanel = null;
+                    }
+                } catch (Exception ex) {
+                    if (errorPanel != null) {
+                        contentPanel.remove(errorPanel);
+                        contentPanel.revalidate();
+                        contentPanel.repaint();
+                        errorPanel = null;
+                    }
+                    errorFieldHandler(ex.getMessage());
+                }
+            }
+
+        });
+
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(new Runnable(){
+        SwingUtilities.invokeLater(new Runnable() {
             public void run() {
                 new AppUI().setVisible(true);
             }
