@@ -1,11 +1,11 @@
 public class Cipher {
     static int MAX_ROUND = 16;
 
-    static int encrypt(int input, int key) {
+    private static int encrypt(int input, int key) {
         return feistel(input, key, 1, false);
     }
 
-    static int decrpyt(int input, int key) {
+    private static int decrypt(int input, int key) {
         return feistel(input, key, MAX_ROUND, true);
     }
 
@@ -172,7 +172,7 @@ public class Cipher {
 
         // Decipher each block with feistel (decrypt)
         for (int i = 0; i < blocks.length; i++) {
-            decipherBlocks[i] = decrpyt(decipherBlocks[i], key);
+            decipherBlocks[i] = decrypt(decipherBlocks[i], key);
         }
 
         // comment tobeadded
