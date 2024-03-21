@@ -5,7 +5,7 @@ public class Cipher {
         return feistel(input, key, 1, false);
     }
 
-    private static int decrpyt(int input, int key) {
+    private static int decrypt(int input, int key) {
         return feistel(input, key, MAX_ROUND, true);
     }
 
@@ -19,10 +19,13 @@ public class Cipher {
         int f1 = fMethod(right, subkey);
         left = left ^ f1;
 
+        
+        
         // If Decrypting and there are still more rounds
         if (isDecrypt) {
             if (round > 1) {
                 output = (right << 16) | left;
+                AppUI.progressArea.append("Round " + round + " - " + Integer.toHexString(output) + "\n");
                 return feistel(output, key, --round, true);
             }
         }
@@ -30,11 +33,13 @@ public class Cipher {
         else {
             if (round < MAX_ROUND) {
                 output = (right << 16) | left;
+                AppUI.progressArea.append("Round " + round + " - " + Integer.toHexString(output) + "\n");
                 return feistel(output, key, ++round, false);
             }
         }
         // If there are no more rounds
         output = (left << 16) | right;
+        AppUI.progressArea.append("Round " + round + " - " + Integer.toHexString(output) + "\n");
         return output;
     }
 
@@ -172,7 +177,7 @@ public class Cipher {
 
         // Decipher each block with feistel (decrypt)
         for (int i = 0; i < blocks.length; i++) {
-            decipherBlocks[i] = decrpyt(decipherBlocks[i], key);
+            decipherBlocks[i] = decrypt(decipherBlocks[i], key);
         }
 
         // comment tobeadded
