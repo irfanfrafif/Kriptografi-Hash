@@ -19,13 +19,12 @@ public class Cipher {
         int f1 = fMethod(right, subkey);
         left = left ^ f1;
 
-        
-        
         // If Decrypting and there are still more rounds
         if (isDecrypt) {
             if (round > 1) {
                 output = (right << 16) | left;
-                AppUI.progressArea.append("Round " + round + " - " + Integer.toHexString(output) + "\n");
+                if (AppUI.progressArea != null)
+                    AppUI.progressArea.append("Round " + round + " - " + Integer.toHexString(output) + "\n");
                 return feistel(output, key, --round, true);
             }
         }
@@ -33,23 +32,32 @@ public class Cipher {
         else {
             if (round < MAX_ROUND) {
                 output = (right << 16) | left;
-                AppUI.progressArea.append("Round " + round + " - " + Integer.toHexString(output) + "\n");
+                if (AppUI.progressArea != null)
+                    AppUI.progressArea.append("Round " + round + " - " + Integer.toHexString(output) + "\n");
                 return feistel(output, key, ++round, false);
             }
         }
         // If there are no more rounds
         output = (left << 16) | right;
-        AppUI.progressArea.append("Round " + round + " - " + Integer.toHexString(output) + "\n");
+        if (AppUI.progressArea != null)
+            AppUI.progressArea.append("Round " + round + " - " + Integer.toHexString(output) + "\n");
         return output;
     }
 
     private static int fMethod(int input, int subkey) {
         int output = 0;
-
+        // int[] sBox = { 0x3, 0x4, 0x1, 0x2, 0x7, 0x6, 0x5, 0x8, 0xB, 0xC, 0x9, 0xA, 0xF, 0xE, 0xD, 0x0, 0xC};
         // TODO: Implement more sophisticated F Method
-        output = input ^ subkey;
+        output = (((input ^ subkey) >> 1) + 12345) & 0xFFFF;
+        // Key mixing
+        // int afterKeyMixing = (((input ^ subkey) >> 1) + 12345) & 0xFFFF;
 
-        return output;
+        // Substitution with S-box
+        // int afterSubstitution = sBox[afterKeyMixing & 0xF];
+
+        // Permutation (rotate left by 1 bit)
+        // output = (afterSubstitution << 1) | (afterSubstitution >>> (0xFFFF - 1));
+        return output & 0xFFFF;
     }
 
     private static int keyScheduler(int key, int round) {
