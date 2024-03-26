@@ -1,133 +1,194 @@
-import java.nio.charset.StandardCharsets;
-
 public class Cipher2 {
-
     static int MAX_ROUND = 16;
 
-    public static void feistelCipher1(String input) {
-        char[] output = input.toCharArray();
-        String bruh = "";
-        for (char c : output) {
-            String binary = String.format("%8s", Integer.toBinaryString(c)).replaceAll(" ", "0");
-            bruh = bruh.concat(binary) + " ";
-        }
+    private static int encrypt(int input, int key) {
+        return feistel(input, key, 1, false);
     }
 
-    public static void feistelCipher2(String input) {
-        byte[] b = input.getBytes(StandardCharsets.UTF_8);
-        boolean[] bools = BitmaskHelper.bytesToBoolArray(b);
-        // String wad = test.toString();
+    private static int decrypt(int input, int key) {
+        return feistel(input, key, MAX_ROUND, true);
     }
 
-    public static int feistel32bit(int input, int key) {
-        return feistel32bit(input, key, 1);
-    }
-
-    public static int feistel32bitDecipher(int input, int key) {
-        return feistel32bitDecipher(input, key, MAX_ROUND);
-    }
-
-    public static int feistel32bit(int input, int key, int round) {
+    private static int feistel(int input, int key, int round, boolean isDecrypt) {
         int output = 0;
-        short subkey = keyScheduler(key, round);
+        int subkey = keyScheduler(key, round);
 
-        short[] shorts = BitmaskHelper.splitInt(input);
+        int right = input & 0xFFFF;
+        int left = (input >> 16) & 0xFFFF;
 
-        short shorts1new = fMethod(shorts[1], subkey);
-        shorts[0] = (short) (shorts[0] ^ shorts1new);
+        int f1 = fMethod(right, subkey);
+        left = left ^ f1;
 
-        if (round < MAX_ROUND) {
-            output = BitmaskHelper.shortsToInt(shorts[1], shorts[0]);
-            System.out.println("Cipher Round " + round + ": " + output);
-            return feistel32bit(output, key, round + 1);
-        } else {
-            output = BitmaskHelper.shortsToInt(shorts[0], shorts[1]);
-            System.out.println("Cipher Round " + round + ": " + output);
-            return output;
+        // If Decrypting and there are still more rounds
+        if (isDecrypt) {
+            if (round > 1) {
+                output = (right << 16) | left;
+                if (AppUI.progressArea != null)
+                    AppUI.progressArea.append("Round " + round + " - " + Integer.toHexString(output) + "\n");
+                return feistel(output, key, --round, true);
+            }
         }
-    }
-
-    public static int feistel32bitDecipher(int input, int key, int round) {
-        int output = 0;
-        short subkey = keyScheduler(key, round);
-
-        short[] shorts = BitmaskHelper.splitInt(input);
-
-        short shorts1new = fMethod(shorts[1], subkey);
-        shorts[0] = (short) (shorts[0] ^ shorts1new);
-
-        if (round > 1) {
-            output = BitmaskHelper.shortsToInt(shorts[1], shorts[0]);
-            System.out.println("Decipher Round " + round + ": " + output);
-            return feistel32bitDecipher(output, key, round - 1);
-        } else {
-            output = BitmaskHelper.shortsToInt(shorts[0], shorts[1]);
-            System.out.println("Decipher Round " + round + ": " + output);
-            return output;
+        // If Encrypting and there are still more rounds
+        else {
+            if (round < MAX_ROUND) {
+                output = (right << 16) | left;
+                if (AppUI.progressArea != null)
+                    AppUI.progressArea.append("Round " + round + " - " + Integer.toHexString(output) + "\n");
+                return feistel(output, key, ++round, false);
+            }
         }
+        // If there are no more rounds
+        output = (left << 16) | right;
+        if (AppUI.progressArea != null)
+            AppUI.progressArea.append("Round " + round + " - " + Integer.toHexString(output) + "\n");
+        return output;
     }
 
-    public static short fMethod(short input, short key) {
+    private static int fMethod(int input, int subkey) {
         int output = 0;
+        // int[] sBox = { 0x3, 0x4, 0x1, 0x2, 0x7, 0x6, 0x5, 0x8, 0xB, 0xC, 0x9, 0xA,
+        // 0xF, 0xE, 0xD, 0x0, 0xC};
+        // TODO: Implement more sophisticated F Method
+        output = (((input ^ subkey) >> 1) + 12345) & 0xFFFF;
+        output = (~output) >> 1;
+        // Key mixing
+        // int afterKeyMixing = (((input ^ subkey) >> 1) + 12345) & 0xFFFF;
 
-        output = (input ^ key);
+        // Substitution with S-box
+        // int afterSubstitution = sBox[afterKeyMixing & 0xF];
 
-        return (short) output;
+        // Permutation (rotate left by 1 bit)
+        // output = (afterSubstitution << 1) | (afterSubstitution >>> (0xFFFF - 1));
+        return output & 0xFFFF;
     }
 
-    public static short keyScheduler(int key, int round) {
+    private static int keyScheduler(int key, int round) {
         int subkey = 0;
 
+        // TODO: Implement more sophisticated Key Scheduler
         subkey = ((key >> round - 1) & 0xFFFF);
-        // System.out.println(subkey);
 
-        return (short) subkey;
+        return subkey;
     }
 
-    public static void main(String[] args) {
-        // feistelCipher1("tast ");
-        // feistelCipher2("aa");
-        // byte a = BitmaskHelper.boolArrayToByte(BitmaskHelper.byteToBoolArray((byte)
-        // 97));
-        // short[] a = BitmaskHelper.splitInt(Integer.parseInt("FF0F00F", 16));
-        // byte[] b = BitmaskHelper.splitShort(a[0]);
-        // short c = BitmaskHelper.bytesToShort(b[0], b[1]);
-        // int d = BitmaskHelper.shortsToInt(c, a[1]);
-        // feistel32bit(Integer.parseInt("FF0F00F", 16), 0xAAAAAAAA);
-
-        String inputtext = "abcd";
-        int textLength = inputtext.length();
+    private static int[] processInput(String input) {
+        // Text length and check if it needs padding
+        int textLength = input.length();
         if (textLength % 4 != 0) {
             textLength += 4 - (textLength % 4);
         }
-        String plaintext = String.format("%-" + textLength + "s", inputtext);
 
-        int currentCharIndex = 0;
+        // Make new plaintext from input + padding
+        String plaintext = String.format("%-" + textLength + "s", input);
 
-        int[] blocks = new int[textLength / 4];
-        for (int i = 0; i < blocks.length; i++) {
-            byte[] b = plaintext.substring(currentCharIndex, currentCharIndex +
-                    4).getBytes(StandardCharsets.UTF_8);
-            blocks[i] = BitmaskHelper.shortsToInt(BitmaskHelper.bytesToShort(b[0], b[1]),
-                    BitmaskHelper.bytesToShort(b[2], b[3]));
-            currentCharIndex += 4;
+        // Calculate Total blocks needed
+        int blockCount = textLength / 4;
+        int[] blocks = new int[blockCount];
+
+        // Make each 4 chars into 32 bits block in integer form
+        int charIndex = 0;
+        for (int i = 0; i < blockCount; i++) {
+            byte[] b = plaintext.substring(charIndex, charIndex + 4).getBytes();
+            blocks[i] = ((((b[0] << 24) | (b[1] << 16)) | (b[2] << 8)) | b[3]);
+            charIndex += 4;
         }
 
-        // int[] blocks = { 876084729 };
-        // int[] blocks = { -1465071154 };
+        return blocks;
+    }
 
+    private static int[] processHexInput(String input) {
+        int blockCount = input.length() / 8;
+        int[] blocks = new int[blockCount];
+
+        int charIndex = 0;
+        for (int i = 0; i < blocks.length; i++) {
+            blocks[i] = Integer.parseUnsignedInt(input.substring(charIndex, charIndex + 8), 16);
+            charIndex += 8;
+        }
+
+        return blocks;
+    }
+
+    private static int processKey(String inputKey, boolean isKeyHex) {
+        // Convert key to int depending whether key is hex or text
+        int key = 0;
+        if (isKeyHex) {
+            key = Integer.parseUnsignedInt(inputKey, 16);
+        } else {
+            byte[] b = inputKey.getBytes();
+            key = ((((b[0] << 24) | (b[1] << 16)) | (b[2] << 8)) | b[3]);
+        }
+
+        return key;
+    }
+
+    // Main method for ciphering
+    public static String cipherText(String input, String inputKey, boolean isKeyHex) {
+        int[] blocks = processInput(input);
+        int key = processKey(inputKey, isKeyHex);
+
+        // Cipher each blocks using feistel
         int[] cipherBlocks = new int[blocks.length];
+        for (int i = 0; i < cipherBlocks.length; i++) {
+            if (i == 0) {
+                cipherBlocks[i] = blocks[i] ^ key;
+            } else {
+                cipherBlocks[i] = cipherBlocks[i - 1] ^ blocks[i];
+            }
+            cipherBlocks[i] = encrypt(cipherBlocks[i], key);
+        }
+
+        // Cipher whole blocks with CBC
+        // for (int i = 0; i < cipherBlocks.length; i++) {
+        // cbc(cipherBlocks, i, key);
+        // }
+
+        // Convert cipherblocks int into hex string, then concat all into single string
+        String output = "";
+        for (int i = 0; i < cipherBlocks.length; i++) {
+            output = output + String.format("%8s", Integer.toHexString(cipherBlocks[i])).replaceAll(" ", "0");
+        }
+
+        return output;
+    }
+
+    // Main method for deciphering
+    public static String decipherText(String input, String inputKey, boolean isKeyHex) {
+        int[] blocks = processHexInput(input);
+        int key = processKey(inputKey, isKeyHex);
+
+        // Create separate array for decrypting
+        int[] decipherBlocks = new int[blocks.length];
+        System.arraycopy(blocks, 0, decipherBlocks, 0, blocks.length);
+
+        // Decipher whole blocks with CBC (decrypt)
+        // for (int i = 0; i < blocks.length; i++) {
+        // cbcDecrypt(decipherBlocks, blocks, i, key);
+        // }
+
+        // Decipher each block with feistel (decrypt)
         for (int i = 0; i < blocks.length; i++) {
-            cipherBlocks[i] = feistel32bit(blocks[i], 33961015);
+            decipherBlocks[i] = decrypt(blocks[i], key);
+            if (i == 0) {
+                decipherBlocks[i] = decipherBlocks[i] ^ key;
+            } else {
+                decipherBlocks[i] = blocks[i - 1] ^ decipherBlocks[i];
+            }
         }
 
-        int[] decipherBlocks = { feistel32bitDecipher(cipherBlocks[0], 33961015) };
+        // comment tobeadded
+        String hexString = "";
+        for (int i = 0; i < decipherBlocks.length; i++) {
+            hexString = hexString + String.format("%8s", Integer.toHexString(decipherBlocks[i])).replaceAll(" ", "0");
+        }
 
-        for (int i : cipherBlocks) {
-            System.out.println(i + " ");
+        String output = "";
+        String[] hexPairs = hexString.split("(?<=\\G.{2})");
+
+        for (String s : hexPairs) {
+            output = output + Character.toChars(Integer.parseInt(s, 16))[0]; // WTF is this?!!?!?!
         }
-        for (int i : decipherBlocks) {
-            System.out.println(i + " ");
-        }
+
+        return output;
     }
 }
