@@ -31,9 +31,9 @@ public class AppUI extends JFrame {
         createView();
         setTitle("Cipher App");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setSize(1000, 800);
+        setSize(500, 500);
         setLocationRelativeTo(null);
-        setResizable(true);
+        setResizable(false);
     }
 
     private void errorFieldHandler(String message) {
@@ -146,12 +146,11 @@ public class AppUI extends JFrame {
         encryptButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 try {
-                    if(progressArea != null) {
+                    if (progressArea != null) {
                         progressArea.revalidate();
                         progressArea.repaint();
                         progressArea.setText("Logs: \n");
-                    }
-                    else {
+                    } else {
                         progressArea = new JTextArea(10, 15);
                         progressArea.setLineWrap(true);
                         progressArea.append("Logs: \n");
@@ -163,7 +162,6 @@ public class AppUI extends JFrame {
                     boolean isHex = hexButton.isSelected();
                     String result = Cipher2.cipherText(text, key, isHex);
                     textField2.setText(result);
-
 
                     if (errorPanel != null) {
                         contentPanel.remove(errorPanel);
@@ -186,12 +184,11 @@ public class AppUI extends JFrame {
         decryptButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 try {
-                    if(progressArea != null) {
+                    if (progressArea != null) {
                         progressArea.revalidate();
                         progressArea.repaint();
                         progressArea.setText("Logs: \n");
-                    }
-                    else {
+                    } else {
                         progressArea = new JTextArea(10, 15);
                         progressArea.setLineWrap(true);
                         progressArea.append("Logs: \n");
@@ -223,13 +220,5 @@ public class AppUI extends JFrame {
 
         });
 
-    }
-
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                new AppUI().setVisible(true);
-            }
-        });
     }
 }

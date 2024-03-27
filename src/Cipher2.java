@@ -50,9 +50,11 @@ public class Cipher2 {
         int output = 0;
         // int[] sBox = { 0x3, 0x4, 0x1, 0x2, 0x7, 0x6, 0x5, 0x8, 0xB, 0xC, 0x9, 0xA,
         // 0xF, 0xE, 0xD, 0x0, 0xC};
-        // TODO: Implement more sophisticated F Method
-        output = (((input ^ subkey) >> 1) + 12345) & 0xFFFF;
-        output = (~output) >> 1;
+
+        // 69643(10) = 010001000000001011(2) => x^16 + x^12 + x^3 + x + 1
+        output = ((((BitmaskHelper.polynomialMultMod(input, subkey, 69643)) ^ subkey) >> 1) + 12345) & 0xFFFF;
+        output = ~output;
+
         // Key mixing
         // int afterKeyMixing = (((input ^ subkey) >> 1) + 12345) & 0xFFFF;
 
@@ -66,7 +68,6 @@ public class Cipher2 {
 
     private static int keyScheduler(int key, int round) {
         int subkey = 0;
-        // TODO: Implement more sophisticated Key Scheduler
         prng = new BlumBlumShub(key);
         int randomValue = prng.next(round);
         subkey = ((key >> round - 1) & 0xFFFF);
@@ -127,24 +128,29 @@ public class Cipher2 {
 
     // Main method for ciphering
     public static String cipherText(String input, String inputKey, boolean isKeyHex) {
+        if (AppUI.progressArea != null)
+            AppUI.progressArea.append("Input length: " + (input.length() * 8) + " bits\n");
+
         int[] blocks = processInput(input);
         int key = processKey(inputKey, isKeyHex);
 
-        // Cipher each blocks using feistel
+        if (AppUI.progressArea != null)
+            AppUI.progressArea.append("Block count: " + blocks.length + "\n");
+
+        // Cipher each blocks using cbc and feistel
         int[] cipherBlocks = new int[blocks.length];
         for (int i = 0; i < cipherBlocks.length; i++) {
+            if (AppUI.progressArea != null)
+                AppUI.progressArea.append("\n|Block " + (i + 1) + " - " + Integer.toHexString(blocks[i]) + "|\n");
             if (i == 0) {
-                cipherBlocks[i] = blocks[i] ^ key;
+                prng = new BlumBlumShub(key);
+                int iv = prng.next(cipherBlocks.length);
+                cipherBlocks[i] = blocks[i] ^ iv;
             } else {
                 cipherBlocks[i] = cipherBlocks[i - 1] ^ blocks[i];
             }
             cipherBlocks[i] = encrypt(cipherBlocks[i], key);
         }
-
-        // Cipher whole blocks with CBC
-        // for (int i = 0; i < cipherBlocks.length; i++) {
-        // cbc(cipherBlocks, i, key);
-        // }
 
         // Convert cipherblocks int into hex string, then concat all into single string
         String output = "";
@@ -157,23 +163,28 @@ public class Cipher2 {
 
     // Main method for deciphering
     public static String decipherText(String input, String inputKey, boolean isKeyHex) {
+        if (AppUI.progressArea != null)
+            AppUI.progressArea.append("Input length: " + (input.length() * 4) + " bits\n");
+
         int[] blocks = processHexInput(input);
         int key = processKey(inputKey, isKeyHex);
+
+        if (AppUI.progressArea != null)
+            AppUI.progressArea.append("Block count: " + blocks.length + "\n");
 
         // Create separate array for decrypting
         int[] decipherBlocks = new int[blocks.length];
         System.arraycopy(blocks, 0, decipherBlocks, 0, blocks.length);
 
-        // Decipher whole blocks with CBC (decrypt)
-        // for (int i = 0; i < blocks.length; i++) {
-        // cbcDecrypt(decipherBlocks, blocks, i, key);
-        // }
-
-        // Decipher each block with feistel (decrypt)
+        // Decipher each block with cbc and feistel (decrypt)
         for (int i = 0; i < blocks.length; i++) {
+            if (AppUI.progressArea != null)
+                AppUI.progressArea.append("\n|Block " + (i + 1) + " - " + Integer.toHexString(blocks[i]) + "|\n");
             decipherBlocks[i] = decrypt(blocks[i], key);
             if (i == 0) {
-                decipherBlocks[i] = decipherBlocks[i] ^ key;
+                prng = new BlumBlumShub(key);
+                int iv = prng.next(decipherBlocks.length);
+                decipherBlocks[i] = decipherBlocks[i] ^ iv;
             } else {
                 decipherBlocks[i] = blocks[i - 1] ^ decipherBlocks[i];
             }

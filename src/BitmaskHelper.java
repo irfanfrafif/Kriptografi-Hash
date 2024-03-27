@@ -104,7 +104,7 @@ public class BitmaskHelper {
     // 4=100 5=101 6=110 7=111
     //
     // thus
-    // 210013(8) = 010001000000001011(2) => x^16 + x^12 + x^3 + x + 1
+    // 210013(8) = 69643(10) = 010001000000001011(2) => x^16 + x^12 + x^3 + x + 1
     //
     // Reference:
     // https://web.eecs.utk.edu/~jplank/plank/papers/CS-07-593/primitive-polynomial-table.txt
