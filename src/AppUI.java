@@ -8,7 +8,6 @@ import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.SwingUtilities;
 import javax.swing.ButtonGroup;
 
 import java.awt.Color;
