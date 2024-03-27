@@ -135,7 +135,7 @@ public class Cipher2 {
         int key = processKey(inputKey, isKeyHex);
 
         if (AppUI.progressArea != null)
-            AppUI.progressArea.append("Block count: " + blocks.length + "\n");
+            AppUI.progressArea.append("Block count: " + blocks.length + "\nKey: " + Integer.toHexString(key) + "\n");
 
         // Cipher each blocks using cbc and feistel
         int[] cipherBlocks = new int[blocks.length];
@@ -170,7 +170,7 @@ public class Cipher2 {
         int key = processKey(inputKey, isKeyHex);
 
         if (AppUI.progressArea != null)
-            AppUI.progressArea.append("Block count: " + blocks.length + "\n");
+            AppUI.progressArea.append("Block count: " + blocks.length + "\nKey: " + Integer.toHexString(key) + "\n");
 
         // Create separate array for decrypting
         int[] decipherBlocks = new int[blocks.length];
