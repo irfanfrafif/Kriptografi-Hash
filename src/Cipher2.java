@@ -1,6 +1,8 @@
 public class Cipher2 {
     static int MAX_ROUND = 16;
 
+    private static BlumBlumShub prng;
+
     private static int encrypt(int input, int key) {
         return feistel(input, key, 1, false);
     }
@@ -64,10 +66,11 @@ public class Cipher2 {
 
     private static int keyScheduler(int key, int round) {
         int subkey = 0;
-
         // TODO: Implement more sophisticated Key Scheduler
+        prng = new BlumBlumShub(key);
+        int randomValue = prng.next(round);
         subkey = ((key >> round - 1) & 0xFFFF);
-
+        subkey ^= randomValue;
         return subkey;
     }
 
