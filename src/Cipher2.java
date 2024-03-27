@@ -1,5 +1,3 @@
-import java.math.BigInteger;
-
 public class Cipher2 {
     static int MAX_ROUND = 16;
 
@@ -69,8 +67,8 @@ public class Cipher2 {
     private static int keyScheduler(int key, int round) {
         int subkey = 0;
         // TODO: Implement more sophisticated Key Scheduler
-        prng = new BlumBlumShub(BigInteger.valueOf(key));
-        int randomValue = prng.next();
+        prng = new BlumBlumShub(key);
+        int randomValue = prng.next(round);
         subkey = ((key >> round - 1) & 0xFFFF);
         subkey ^= randomValue;
         return subkey;

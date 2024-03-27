@@ -1,26 +1,26 @@
-import java.math.BigInteger;
-
 public class BlumBlumShub {
-    private BigInteger p;
-//  p = 39459
-//  q = 12355
-//  n = 487515945
-    private static final BigInteger MODULUS = new BigInteger("487515945", 10); // Product of two large primes
+    private int p;
+    private int a = 394595;
+    private int b = 123555;
+    private int n = a * b; // Product of two large primes
 
-    public BlumBlumShub(BigInteger seed) {
+    public BlumBlumShub(int seed) {
         this.p = seed;
     }
 
-    public int next() {
+    public int next(int round) {
         int q = 0;
         System.out.println("p: " + p);
+        System.out.println(n);
         
-        for (int i = 0; i < 16 ; i++) {
-            p = p.multiply(p).mod(BigInteger.valueOf(MODULUS.longValue()));
-            // q = q.multiply(q).mod(BigInteger.valueOf(MODULUS.longValue()));
+        for (int i = 0; i < 32 ; i++) {
+            p = (p * p) % n;
             q = q << 1;
-            q += p.mod(BigInteger.valueOf(2)).intValue();
+            q += p % 2;
         }
+
+        q = q >> round - 1;
+        
         System.out.println("q: " + q);
 
         return q & 0xFFFF;
