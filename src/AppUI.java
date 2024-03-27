@@ -159,7 +159,7 @@ public class AppUI extends JFrame {
                     String text = textField1.getText();
                     String key = keyField.getText();
                     boolean isHex = hexButton.isSelected();
-                    String result = Cipher2.cipherText(text, key, isHex);
+                    String result = Cipher.cipherText(text, key, isHex);
                     textField2.setText(result);
 
                     if (errorPanel != null) {
@@ -197,7 +197,7 @@ public class AppUI extends JFrame {
                     String text = textField1.getText();
                     String key = keyField.getText();
                     boolean isHex = hexButton.isSelected();
-                    String result = Cipher2.decipherText(text, key, isHex);
+                    String result = Cipher.decipherText(text, key, isHex);
                     textField2.setText(result);
 
                     if (errorPanel != null) {

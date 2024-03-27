@@ -1,7 +1,7 @@
-// IMPORTANT: THIS CLASS IS NOT USED, REFER TO CLASS Cipher2 INSTEAD
-
 public class Cipher {
     static int MAX_ROUND = 16;
+
+    private static BlumBlumShub prng;
 
     private static int encrypt(int input, int key) {
         return feistel(input, key, 1, false);
@@ -50,8 +50,11 @@ public class Cipher {
         int output = 0;
         // int[] sBox = { 0x3, 0x4, 0x1, 0x2, 0x7, 0x6, 0x5, 0x8, 0xB, 0xC, 0x9, 0xA,
         // 0xF, 0xE, 0xD, 0x0, 0xC};
-        // TODO: Implement more sophisticated F Method
-        output = (((input ^ subkey) >> 1) + 12345) & 0xFFFF;
+
+        // 69643(10) = 010001000000001011(2) => x^16 + x^12 + x^3 + x + 1
+        output = ((((BitmaskHelper.polynomialMultMod(input, subkey, 69643)) ^ subkey) >> 1) + 12345) & 0xFFFF;
+        output = ~output;
+
         // Key mixing
         // int afterKeyMixing = (((input ^ subkey) >> 1) + 12345) & 0xFFFF;
 
@@ -65,35 +68,11 @@ public class Cipher {
 
     private static int keyScheduler(int key, int round) {
         int subkey = 0;
-
-        // TODO: Implement more sophisticated Key Scheduler
+        prng = new BlumBlumShub(key);
+        int randomValue = prng.next(round);
         subkey = ((key >> round - 1) & 0xFFFF);
-
+        subkey ^= randomValue;
         return subkey;
-    }
-
-    private static void cbc(int[] blocks, int blockIndex, int key) {
-        int iv;
-        if (blockIndex <= 0)
-            iv = ~key;
-        else
-            iv = blocks[blockIndex - 1];
-
-        // TODO: Implement more sophisticated CBC Encryption
-        blocks[blockIndex] = blocks[blockIndex] ^ iv;
-        blocks[blockIndex] = blocks[blockIndex] ^ key; // Function
-    }
-
-    private static void cbcDecrypt(int[] decipherBlocks, int[] cipherBlocks, int blockIndex, int key) {
-        int iv;
-        if (blockIndex <= 0)
-            iv = ~key;
-        else
-            iv = cipherBlocks[blockIndex - 1];
-
-        // TODO: Implement more sophisticated CBC Decryption
-        decipherBlocks[blockIndex] = decipherBlocks[blockIndex] ^ key; // Function
-        decipherBlocks[blockIndex] = decipherBlocks[blockIndex] ^ iv;
     }
 
     private static int[] processInput(String input) {
@@ -149,18 +128,28 @@ public class Cipher {
 
     // Main method for ciphering
     public static String cipherText(String input, String inputKey, boolean isKeyHex) {
+        if (AppUI.progressArea != null)
+            AppUI.progressArea.append("Input length: " + (input.length() * 8) + " bits\n");
+
         int[] blocks = processInput(input);
         int key = processKey(inputKey, isKeyHex);
 
-        // Cipher each blocks using feistel
+        if (AppUI.progressArea != null)
+            AppUI.progressArea.append("Block count: " + blocks.length + "\nKey: " + Integer.toHexString(key) + "\n");
+
+        // Cipher each blocks using cbc and feistel
         int[] cipherBlocks = new int[blocks.length];
         for (int i = 0; i < cipherBlocks.length; i++) {
-            cipherBlocks[i] = encrypt(blocks[i], key);
-        }
-
-        // Cipher whole blocks with CBC
-        for (int i = 0; i < cipherBlocks.length; i++) {
-            cbc(cipherBlocks, i, key);
+            if (AppUI.progressArea != null)
+                AppUI.progressArea.append("\n|Block " + (i + 1) + " - " + Integer.toHexString(blocks[i]) + "|\n");
+            if (i == 0) {
+                prng = new BlumBlumShub(key);
+                int iv = prng.next(cipherBlocks.length);
+                cipherBlocks[i] = blocks[i] ^ iv;
+            } else {
+                cipherBlocks[i] = cipherBlocks[i - 1] ^ blocks[i];
+            }
+            cipherBlocks[i] = encrypt(cipherBlocks[i], key);
         }
 
         // Convert cipherblocks int into hex string, then concat all into single string
@@ -174,21 +163,31 @@ public class Cipher {
 
     // Main method for deciphering
     public static String decipherText(String input, String inputKey, boolean isKeyHex) {
+        if (AppUI.progressArea != null)
+            AppUI.progressArea.append("Input length: " + (input.length() * 4) + " bits\n");
+
         int[] blocks = processHexInput(input);
         int key = processKey(inputKey, isKeyHex);
+
+        if (AppUI.progressArea != null)
+            AppUI.progressArea.append("Block count: " + blocks.length + "\nKey: " + Integer.toHexString(key) + "\n");
 
         // Create separate array for decrypting
         int[] decipherBlocks = new int[blocks.length];
         System.arraycopy(blocks, 0, decipherBlocks, 0, blocks.length);
 
-        // Decipher whole blocks with CBC (decrypt)
+        // Decipher each block with cbc and feistel (decrypt)
         for (int i = 0; i < blocks.length; i++) {
-            cbcDecrypt(decipherBlocks, blocks, i, key);
-        }
-
-        // Decipher each block with feistel (decrypt)
-        for (int i = 0; i < blocks.length; i++) {
-            decipherBlocks[i] = decrypt(decipherBlocks[i], key);
+            if (AppUI.progressArea != null)
+                AppUI.progressArea.append("\n|Block " + (i + 1) + " - " + Integer.toHexString(blocks[i]) + "|\n");
+            decipherBlocks[i] = decrypt(blocks[i], key);
+            if (i == 0) {
+                prng = new BlumBlumShub(key);
+                int iv = prng.next(decipherBlocks.length);
+                decipherBlocks[i] = decipherBlocks[i] ^ iv;
+            } else {
+                decipherBlocks[i] = blocks[i - 1] ^ decipherBlocks[i];
+            }
         }
 
         // comment tobeadded
