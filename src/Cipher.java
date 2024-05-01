@@ -139,12 +139,16 @@ public class Cipher {
 
         // Cipher each blocks using cbc and feistel
         int[] cipherBlocks = new int[blocks.length];
+        prng = new BlumBlumShub(key);
+        int iv = prng.next(cipherBlocks.length);
+
+        if (AppUI.progressArea != null)
+            AppUI.progressArea.append("IV: " + Integer.toHexString(iv) + "\n");
+
         for (int i = 0; i < cipherBlocks.length; i++) {
             if (AppUI.progressArea != null)
                 AppUI.progressArea.append("\n|Block " + (i + 1) + " - " + Integer.toHexString(blocks[i]) + "|\n");
             if (i == 0) {
-                prng = new BlumBlumShub(key);
-                int iv = prng.next(cipherBlocks.length);
                 cipherBlocks[i] = blocks[i] ^ iv;
             } else {
                 cipherBlocks[i] = cipherBlocks[i - 1] ^ blocks[i];
@@ -175,6 +179,10 @@ public class Cipher {
         // Create separate array for decrypting
         int[] decipherBlocks = new int[blocks.length];
         System.arraycopy(blocks, 0, decipherBlocks, 0, blocks.length);
+        prng = new BlumBlumShub(key);
+        int iv = prng.next(decipherBlocks.length);
+        if (AppUI.progressArea != null)
+            AppUI.progressArea.append("IV: " + Integer.toHexString(iv) + "\n");
 
         // Decipher each block with cbc and feistel (decrypt)
         for (int i = 0; i < blocks.length; i++) {
@@ -182,8 +190,6 @@ public class Cipher {
                 AppUI.progressArea.append("\n|Block " + (i + 1) + " - " + Integer.toHexString(blocks[i]) + "|\n");
             decipherBlocks[i] = decrypt(blocks[i], key);
             if (i == 0) {
-                prng = new BlumBlumShub(key);
-                int iv = prng.next(decipherBlocks.length);
                 decipherBlocks[i] = decipherBlocks[i] ^ iv;
             } else {
                 decipherBlocks[i] = blocks[i - 1] ^ decipherBlocks[i];
