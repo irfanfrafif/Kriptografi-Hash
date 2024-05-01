@@ -81,11 +81,60 @@ public class BitmaskHelper {
         return output;
     }
 
-    private static int SetBit(int i, int index) {
+    public static int SetBit(int i, int index) {
         return i | (1 << index);
     }
 
-    private static int ClearBit(int i, int index) {
-        return i | (1 << index);
+    public static int highestSetBit(int input) {
+        int r = 0;
+        while (input > 1) {
+            input >>= 1;
+            r++;
+        }
+        return r;
+    }
+
+    // Irreduceable polynomial of GF(2^16) IN OCTAL NUMBER:
+    // 210013, 234313, 233303, 307107, 307527, 306357,
+    // 201735, 272201, 242413, 270155, 302157, 210205,
+    // 305667, 236107
+    //
+    // in Octal to binary:
+    // 0=000, 1=001, 2=010, 3=011
+    // 4=100 5=101 6=110 7=111
+    //
+    // thus
+    // 210013(8) = 69643(10) = 010001000000001011(2) => x^16 + x^12 + x^3 + x + 1
+    //
+    // Reference:
+    // https://web.eecs.utk.edu/~jplank/plank/papers/CS-07-593/primitive-polynomial-table.txt
+
+    // Polynomial Multiplication implementation reference:
+    // https://stackoverflow.com/questions/13202758/multiplying-two-polynomials
+    public static int polynomialMultMod(int fx, int gx, int hx) {
+        int result = 0;
+
+        // Multiplication
+        int multResult = 0;
+        int gxDegree = highestSetBit(gx);
+        for (int i = 0; i <= gxDegree; i++) {
+            if (((gx >> i) & 1) == 1) {
+                multResult ^= fx << i;
+            }
+        }
+
+        // Modulo Reduction
+        int hxDegree = highestSetBit(hx);
+        int multDegree = highestSetBit(multResult);
+
+        for (int i = 0; i <= multDegree; i++) {
+            if (i < hxDegree) {
+                result ^= multResult & (1 << i);
+            } else {
+                result ^= (hx ^ (1 << hxDegree)) << (i - hxDegree);
+            }
+        }
+
+        return result;
     }
 }

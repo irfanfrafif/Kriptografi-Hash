@@ -1,11 +1,11 @@
-public class App {
-    public static void main(String[] args) throws Exception {
-        String x = "Hello, World!";
-        System.out.println(x);
+import javax.swing.SwingUtilities;
 
-        short a = (short) 0xAFAF;
-        int b = (int) a;
-        short c = (short) a;
-        int d = b ^ c;
+public class App {
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                new AppUI().setVisible(true);
+            }
+        });
     }
 }
