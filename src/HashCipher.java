@@ -47,17 +47,31 @@ public class HashCipher {
         return subkey & 0xFF;
     }
 
-    public static int computeHash(int[] blocks, int key) {
-        int hash = 0;
-        for (int block : blocks) {
-            hash = hashFunction(block, key) ^ hash;
+    public static int computeHash(int[] blocks) {
+        int[] hashBlocks = new int[blocks.length];
+        int prevHash;
+        int hash = 1234; // iv and will become
+
+        for (int i = 0; i < hashBlocks.length; i++) {
+            if (i == 0) {
+                prevHash = hash;
+            }
+
+            else
+                prevHash = hashBlocks[i - 1];
+
+            hashBlocks[i] = hashFunction(blocks[i], prevHash);
+
+            hash ^= hashBlocks[i];
+
         }
+
         return hash & 0xFFFFFFFF;
     }
 
-    public static int computeHash(String message, int key) {
+    public static int computeHash(String message) {
         int[] blocks = processInput(message);
-        return computeHash(blocks, key);
+        return computeHash(blocks);
     }
 
     public static int[] processInput(String input) {

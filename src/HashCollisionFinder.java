@@ -1,16 +1,15 @@
 public class HashCollisionFinder {
     public static void main(String[] args) {
-        int key = 0xaaaa;
         String message1 = "find";
         String message2 = "brute";
 
-        int hash1 = HashCipher.computeHash(message1, key);
-        int hash2 = HashCipher.computeHash(message2, key);
+        int hash1 = HashCipher.computeHash(message1);
+        int hash2 = HashCipher.computeHash(message2);
 
         int iteration = 0;
         while (hash1 != hash2) {
             message2 = incrementString(message2);
-            hash2 = HashCipher.computeHash(message2, key);
+            hash2 = HashCipher.computeHash(message2);
 
             System.out.print("String: " + message2);
             System.out.println(" | Hash: " + BitmaskHelper.intToHexString(hash2, 4));
