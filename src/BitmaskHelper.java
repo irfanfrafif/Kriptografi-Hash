@@ -123,6 +123,8 @@ public class BitmaskHelper {
             }
         }
 
+        // System.out.println(multResult);
+
         // Modulo Reduction
         int hxDegree = highestSetBit(hx);
         int multDegree = highestSetBit(multResult);
@@ -136,5 +138,14 @@ public class BitmaskHelper {
         }
 
         return result;
+    }
+
+    public static String intToHexString(int input, int length) {
+        return String.format("%" + length + "s", Integer.toHexString(input)).replaceAll(" ", "0");
+    }
+
+    public static void main(String[] args) {
+        System.out.println(polynomialMultMod(7440, 10976, 69643));
+        System.out.println(polynomialMultMod(13557, 10976, 69643));
     }
 }
